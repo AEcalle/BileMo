@@ -6,13 +6,13 @@ namespace App\Controller;
 
 use App\Entity\Customer;
 use App\Entity\User;
+use App\Exception\ValidationException;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -47,41 +47,37 @@ final class UserController
         ValidatorInterface $validator,
         ): JsonResponse
     {
-        try {
-                $user = $serializer->deserialize(
-                    $request->getContent(),
-                    User::class, 
-                    'json'
-                );
+        $user = $serializer->deserialize(
+            $request->getContent(),
+            User::class, 
+            'json'
+        );
 
-                $errors = $validator->validate($user);
+        $errors = $validator->validate($user);
 
-                if (count($errors) > 0) {
-                    return new JsonResponse(
-                        $serializer->serialize($errors, 'json'),
-                        422,
-                        [],
-                        true
-                    );
-                }
-
-                $user->setCustomer($entityManager->getRepository(Customer::class)->findOneBy([]));
-                $entityManager->persist($user);
-                $entityManager->flush();
-
-                return new JsonResponse(
-                    $serializer->serialize(
-                        $user, 
-                        'json', 
-                        ['groups' => 'get']
-                    ),
-                    201,
-                    ['Location' => $urlGenerator->generate('api_users_item_get', ['id' => $user->getId()])],
-                    true
-                );
-        } catch (NotEncodableValueException $e) {
-            return new JsonResponse(['message' => $e->getMessage()], 400);
+        if (count($errors) > 0) {
+            return new JsonResponse(
+                $serializer->serialize($errors,'json'), 
+                422, 
+                [], 
+                true
+            );
         }
+
+        $user->setCustomer($entityManager->getRepository(Customer::class)->findOneBy([]));
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        return new JsonResponse(
+            $serializer->serialize(
+                $user, 
+                'json', 
+                ['groups' => 'get']
+            ),
+            201,
+            ['Location' => $urlGenerator->generate('api_users_item_get', ['id' => $user->getId()])],
+            true
+        );
     }
 
     #[Route('/{id}', name:'api_users_item_put', methods:['PUT'])]
@@ -93,34 +89,30 @@ final class UserController
         ValidatorInterface $validator
     ): JsonResponse
     {
-        try{
-            $serializer->deserialize(
-                $request->getContent(),
-                User::class, 
-                'json',
-                [AbstractNormalizer::OBJECT_TO_POPULATE => $user]
-            );
+        $serializer->deserialize(
+            $request->getContent(),
+            User::class, 
+            'json',
+            [AbstractNormalizer::OBJECT_TO_POPULATE => $user]
+        );
 
-            $errors = $validator->validate($user);
+        $errors = $validator->validate($user);
 
-            if (count($errors) > 0) {
-                return new JsonResponse(
-                    $serializer->serialize($errors, 'json'),
-                    422,
-                    [],
-                    true
-                );
-            }
-
-            $entityManager->flush();
-
+        if (count($errors) > 0) {
             return new JsonResponse(
-                null,
-                204
+                $serializer->serialize($errors,'json'), 
+                422, 
+                [], 
+                true
             );
-        } catch (NotEncodableValueException $e) {
-            return new JsonResponse(['message' => $e->getMessage()], 400);
         }
+
+        $entityManager->flush();
+
+        return new JsonResponse(
+            null,
+            204
+        );
     }
 
     #[Route('/{id}', name:'api_users_item_get', methods:['GET'])]
