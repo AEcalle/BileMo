@@ -6,6 +6,8 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User
@@ -13,15 +15,23 @@ class User
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['get'])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['get'])]
+    #[Assert\NotBlank]
+    #[Assert\Email]
     private string $email;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['get'])]
+    #[Assert\NotBlank]
     private string $firstName;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['get'])]
+    #[Assert\NotBlank]
     private string $lastName;
 
     #[ORM\ManyToOne('Customer')]
