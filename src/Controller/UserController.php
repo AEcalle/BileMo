@@ -6,7 +6,6 @@ namespace App\Controller;
 
 use App\Entity\Customer;
 use App\Entity\User;
-use App\Exception\ValidationException;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
