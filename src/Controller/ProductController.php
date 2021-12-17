@@ -6,8 +6,15 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Repository\ProductRepository;
+use App\Serializer\PrefixNameConverter;
+use App\Serializer\ProductNormalizer;
+use App\Service\ItemsListFactory;
+use App\Service\Pagination;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('api/products')]
@@ -16,11 +23,33 @@ final class ProductController
     #[Route(name:'api_products_collection_get', methods:['GET'])]
     public function collection (
         ProductRepository $productRepository, 
-        SerializerInterface $serializer
+        ProductNormalizer $productNormalizer,
+        PrefixNameConverter $nameConverter,
+        Pagination $pagination,
+        ItemsListFactory $itemsListFactory
         ): JsonResponse
     {
+        $productsList = $itemsListFactory->create(count($productRepository->findAll()));
+
+        $products = $productRepository->findBy(
+            [],
+            [],
+            $pagination::LIMIT,
+            ($pagination->currentPage()-1)*$pagination::LIMIT
+        );
+
+        foreach ($products as $product)
+        {
+           $productsList->setEmbedded($productNormalizer->normalize($product));
+        }
+
+        $serializer = new Serializer(
+            [new ObjectNormalizer(null, $nameConverter)], 
+            [new JsonEncoder()]
+        );
+
         return new JsonResponse(
-            $serializer->serialize($productRepository->findAll(), 'json'),
+            $serializer->serialize($productsList, 'json'),
             200,
             [],
             true
@@ -30,11 +59,15 @@ final class ProductController
     #[Route('/{id}', name:'api_products_item_get', methods:['GET'])]
     public function item (
         Product $product, 
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        ProductNormalizer $productNormalizer,
         ): JsonResponse
     {
         return new JsonResponse(
-            $serializer->serialize($product, 'json'),
+            $serializer->serialize(
+                $productNormalizer->normalize($product), 
+                'json'
+            ),
             200,
             [],
             true

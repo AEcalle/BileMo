@@ -25,6 +25,7 @@ class ExceptionSubscriber implements EventSubscriberInterface
         $exception = $event->getThrowable();
 
         $response = new JsonResponse();
+        $response->setData($exception->getMessage());
 
         if ($exception instanceof NotEncodableValueException) {
             $response->setData(['message' => 'Syntax Error']);
