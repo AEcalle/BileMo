@@ -35,7 +35,7 @@ final class UserController
         ItemsListFactory $itemsListFactory
         ): JsonResponse
     {
-        $usersList = $itemsListFactory->create(count($userRepository->findAll()));
+        $usersList = $itemsListFactory->create($userRepository->count([]));
 
         $users = $userRepository->findBy(
             [],

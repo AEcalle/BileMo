@@ -29,7 +29,7 @@ final class ProductController
         ItemsListFactory $itemsListFactory
         ): JsonResponse
     {
-        $productsList = $itemsListFactory->create(count($productRepository->findAll()));
+        $productsList = $itemsListFactory->create($productRepository->count([]));
 
         $products = $productRepository->findBy(
             [],
