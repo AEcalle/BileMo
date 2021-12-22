@@ -81,6 +81,6 @@ class ItemsList
      */
     public function setEmbedded(array $_embedded): void
     {
-        $this->_embedded[] = $_embedded;
+        $this->_embedded = $_embedded;
     }
 }

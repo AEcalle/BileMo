@@ -5,24 +5,60 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\ItemsList;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class ItemsListFactory
 {
-    private Pagination $pagination;
+    private UrlGeneratorInterface $router;
 
-    public function __construct(Pagination $pagination)
+    private RequestStack $requestStack;
+
+    public function __construct(UrlGeneratorInterface $router, RequestStack $requestStack)
     {
-        $this->pagination = $pagination;
+        $this->router = $router;
+        $this->requestStack = $requestStack;
     }
 
-    public function create(int $nbItems): ItemsList
+    public function create(Paginator $paginator, int $page, int $limit): ItemsList
     {
-        $itemsList = $this->pagination->setLinks(new ItemsList(), $nbItems);
-        $itemsList->setPage($this->pagination->currentPage());
-        $itemsList->setPages($this->pagination->lastPage($nbItems));
-        $itemsList->setLimit($this->pagination::LIMIT);
+        $itemsList = new ItemsList();
+
+        $itemsList->setPage($page);
+        $itemsList->setPages((int) ceil(count($paginator) / $limit));
+        $itemsList->setLimit($limit);
+
+        $itemsList->setLinks(
+            [
+                'first' => $this->generateUrl(1),
+                'next' => $this->generateUrl(
+                    $page + 1 < $itemsList->getPages() ? $page + 1 : $itemsList->getPages()
+                ),
+                'previous' => $this->generateUrl(
+                    $page - 1 > 0 ? $page - 1 : 1
+                ),
+                'last' => $this->generateUrl($itemsList->getPages())
+            ]
+        );
+        $items = ['items' => []];
+        foreach ($paginator as $item)
+        {
+            $items['items'][] = $item;
+        }
+        $itemsList->setEmbedded($items);
 
         return $itemsList;
+    }
 
+    public function generateUrl(int $page): string
+    {
+        return $this->router->generate(
+            $this->requestStack->getCurrentRequest()->attributes->get('_route'), 
+            [
+                'page' => $page,
+            ], 
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
     }
 }

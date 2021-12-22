@@ -6,15 +6,11 @@ namespace App\Controller;
 
 use App\Entity\Product;
 use App\Repository\ProductRepository;
-use App\Serializer\PrefixNameConverter;
-use App\Serializer\ProductNormalizer;
 use App\Service\ItemsListFactory;
 use App\Service\Pagination;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('api/products')]
@@ -23,29 +19,19 @@ final class ProductController
     #[Route(name:'api_products_collection_get', methods:['GET'])]
     public function collection (
         ProductRepository $productRepository, 
-        ProductNormalizer $productNormalizer,
-        PrefixNameConverter $nameConverter,
+        SerializerInterface $serializer,
         Pagination $pagination,
-        ItemsListFactory $itemsListFactory
+        ItemsListFactory $itemsListFactory,
+        Request $request,
         ): JsonResponse
     {
-        $productsList = $itemsListFactory->create($productRepository->count([]));
+        $page = null !== $request->query->get('page') ? 
+        (int) $request->query->get('page') : 1;
 
-        $products = $productRepository->findBy(
-            [],
-            [],
-            $pagination::LIMIT,
-            ($pagination->currentPage()-1)*$pagination::LIMIT
-        );
-
-        foreach ($products as $product)
-        {
-           $productsList->setEmbedded($productNormalizer->normalize($product));
-        }
-
-        $serializer = new Serializer(
-            [new ObjectNormalizer(null, $nameConverter)], 
-            [new JsonEncoder()]
+        $productsList = $itemsListFactory->create(
+            $pagination->paginate($productRepository, $page), 
+            $page, 
+            $pagination::LIMIT
         );
 
         return new JsonResponse(
@@ -60,12 +46,11 @@ final class ProductController
     public function item (
         Product $product, 
         SerializerInterface $serializer,
-        ProductNormalizer $productNormalizer,
         ): JsonResponse
     {
         return new JsonResponse(
             $serializer->serialize(
-                $productNormalizer->normalize($product), 
+                $product, 
                 'json'
             ),
             200,

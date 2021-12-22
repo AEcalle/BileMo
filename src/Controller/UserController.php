@@ -7,8 +7,6 @@ namespace App\Controller;
 use App\Entity\Customer;
 use App\Entity\User;
 use App\Repository\UserRepository;
-use App\Serializer\PrefixNameConverter;
-use App\Serializer\UserNormalizer;
 use App\Service\ItemsListFactory;
 use App\Service\Pagination;
 use Doctrine\ORM\EntityManagerInterface;
@@ -16,10 +14,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -29,35 +24,25 @@ final class UserController
     #[Route(name:'api_users_collection_get', methods:['GET'])]
     public function collection (
         UserRepository $userRepository, 
-        UserNormalizer $userNormalizer,
-        PrefixNameConverter $nameConverter,
+        SerializerInterface $serializer,
         Pagination $pagination,
-        ItemsListFactory $itemsListFactory
+        ItemsListFactory $itemsListFactory,
+        Request $request,
         ): JsonResponse
     {
-        $usersList = $itemsListFactory->create($userRepository->count([]));
+        $page = null !== $request->query->get('page') ? 
+        (int) $request->query->get('page') : 1;
 
-        $users = $userRepository->findBy(
-            [],
-            [],
-            $pagination::LIMIT,
-            ($pagination->currentPage()-1)*$pagination::LIMIT
-        );
-
-        foreach ($users as $user)
-        {
-           $usersList->setEmbedded($userNormalizer->normalize($user, null, ['groups' => 'get']));
-        }
-
-        $serializer = new Serializer(
-            [new ObjectNormalizer(null, $nameConverter)], 
-            [new JsonEncoder()]
+        $usersList = $itemsListFactory->create(
+            $pagination->paginate($userRepository, $page), 
+            $page, 
+            $pagination::LIMIT
         );
 
         return new JsonResponse(
             $serializer->serialize(
                 $usersList, 
-                'json'
+                'json',
             ),
             200,
             [],
@@ -72,7 +57,6 @@ final class UserController
         EntityManagerInterface $entityManager,
         UrlGeneratorInterface $urlGenerator,
         ValidatorInterface $validator,
-        UserNormalizer $userNormalizer
         ): JsonResponse
     {
         $user = $serializer->deserialize(
@@ -98,8 +82,9 @@ final class UserController
 
         return new JsonResponse(
             $serializer->serialize(
-                $userNormalizer->normalize($user, null, ['groups' => 'get']), 
+                $user,
                 'json', 
+                ['groups' => 'get']
             ),
             201,
             ['Location' => $urlGenerator->generate('api_users_item_get', ['id' => $user->getId()])],
@@ -146,13 +131,13 @@ final class UserController
     public function item (
         User $user, 
         SerializerInterface $serializer,
-        UserNormalizer $userNormalizer
         ): JsonResponse
     {
         return new JsonResponse(
             $serializer->serialize(
-                $userNormalizer->normalize($user, null, ['groups' => 'get']),
+                $user,
                 'json',
+                ['groups' => 'get']
             ),
             200,
             [],
