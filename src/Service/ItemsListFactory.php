@@ -29,18 +29,20 @@ class ItemsListFactory
         $itemsList->setPages((int) ceil(count($paginator) / $limit));
         $itemsList->setLimit($limit);
 
-        $itemsList->setLinks(
-            [
-                'first' => $this->generateUrl(1),
-                'next' => $this->generateUrl(
-                    $page + 1 < $itemsList->getPages() ? $page + 1 : $itemsList->getPages()
-                ),
-                'previous' => $this->generateUrl(
-                    $page - 1 > 0 ? $page - 1 : 1
-                ),
-                'last' => $this->generateUrl($itemsList->getPages())
-            ]
+        $links = ['href' => []];
+
+
+        $links['href']['first'] = $this->generateUrl(1);
+        $links['href']['next'] = $this->generateUrl(
+            $page + 1 < $itemsList->getPages() ? $page + 1 : $itemsList->getPages()
         );
+        $links['href']['previous'] = $this->generateUrl(
+            $page - 1 > 0 ? $page - 1 : 1
+        );
+        $links['href']['last'] = $this->generateUrl($itemsList->getPages());
+
+        $itemsList->setLinks($links);
+
         $items = ['items' => []];
         foreach ($paginator as $item)
         {
