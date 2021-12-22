@@ -25,15 +25,26 @@ class ExceptionSubscriber implements EventSubscriberInterface
         $exception = $event->getThrowable();
 
         $response = new JsonResponse();
-        $response->setData($exception->getMessage());
 
         if ($exception instanceof NotEncodableValueException) {
-            $response->setData(['message' => 'Syntax Error']);
+            $response->setData([
+                'errors' => [
+                    'title' => 'Syntax Error',
+                    'status' => 400,
+                    'detail' => 'Json is not valid',
+                ]
+            ]);
             $response->setStatusCode(400);
         }
 
         if ($exception instanceof NotFoundHttpException) {
-            $response->setData(['message' => 'Not found']);
+            $response->setData([
+                'errors' => [
+                    'title' => 'Not Found',
+                    'status' => 400,
+                    'detail' => 'The ressource requested doesn\'t exist',
+                ]
+            ]);
             $response->setStatusCode(404);
         }
 
