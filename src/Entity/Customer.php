@@ -64,4 +64,9 @@ class Customer implements UserInterface, PasswordAuthenticatedUserInterface
    {
         return $this->companyName;
    }
+
+   public function getUserName(): string
+   {
+        return $this->companyName;
+   }
 }

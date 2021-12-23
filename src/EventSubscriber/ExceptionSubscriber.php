@@ -2,6 +2,7 @@
 
 namespace App\EventSubscriber;
 
+use Exception;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -41,7 +42,7 @@ class ExceptionSubscriber implements EventSubscriberInterface
             $response->setData([
                 'errors' => [
                     'title' => 'Not Found',
-                    'status' => 400,
+                    'status' => 404,
                     'detail' => 'The ressource requested doesn\'t exist',
                 ]
             ]);
