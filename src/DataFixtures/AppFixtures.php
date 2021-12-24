@@ -26,16 +26,27 @@ class AppFixtures extends Fixture
             $customer,
             'password'
         ));
+        $customer2 = new Customer();
+        $customer2->setCompanyName('secondCustomer');
+        $customer2->setPassword($this->passwordHasher->hashPassword(
+            $customer2,
+            'password'
+        ));
 
         $manager->persist($customer);
+        $manager->persist($customer2);
 
-        for ($i = 0; $i < 10; $i++)
+        for ($i = 0; $i < 20; $i++)
         {
             $user = new User();
             $user->setEmail(sprintf('email%d@email.com', $i));
             $user->setFirstName(sprintf('firstName%d', $i));
             $user->setLastName(sprintf('lastName%d', $i));
-            $user->setCustomer($customer);
+            if ($i < 10) {
+                $user->setCustomer($customer);
+            } else {
+                $user->setCustomer($customer2);
+            }
             $manager->persist($user);
         }
 

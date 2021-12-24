@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Customer;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\ItemsListFactory;
 use App\Service\Pagination;
 use Doctrine\ORM\EntityManagerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -57,6 +58,7 @@ final class UserController
         EntityManagerInterface $entityManager,
         UrlGeneratorInterface $urlGenerator,
         ValidatorInterface $validator,
+        Security $security,
         ): JsonResponse
     {
         $user = $serializer->deserialize(
@@ -76,7 +78,7 @@ final class UserController
             );
         }
 
-        $user->setCustomer($entityManager->getRepository(Customer::class)->findOneBy([]));
+        $user->setCustomer($security->getUser());
         $entityManager->persist($user);
         $entityManager->flush();
 
@@ -92,6 +94,7 @@ final class UserController
         );
     }
 
+    #[IsGranted('edit', subject: 'user', statusCode: 404)]
     #[Route('/{id}', name:'api_users_item_put', methods:['PUT'])]
     public function put(
         User $user,
@@ -127,12 +130,14 @@ final class UserController
         );
     }
 
+    #[IsGranted('view', subject: 'user', statusCode: 404)]
     #[Route('/{id}', name:'api_users_item_get', methods:['GET'])]
     public function item (
         User $user, 
         SerializerInterface $serializer,
         ): JsonResponse
     {
+
         return new JsonResponse(
             $serializer->serialize(
                 $user,
@@ -145,13 +150,13 @@ final class UserController
         );
     }
 
+    #[IsGranted('delete', subject: 'user', statusCode: 404)]
     #[Route('/{id}', name:'api_users_item_delete', methods:['DELETE'])]
     public function delete (
         User $user, 
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
         ): JsonResponse
     {
-
         $entityManager->remove($user);
         $entityManager->flush();
 

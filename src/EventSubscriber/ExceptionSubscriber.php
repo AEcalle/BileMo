@@ -6,6 +6,7 @@ use Exception;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
@@ -26,6 +27,17 @@ class ExceptionSubscriber implements EventSubscriberInterface
         $exception = $event->getThrowable();
 
         $response = new JsonResponse();
+
+        if ($exception instanceof HttpException) {
+            $response->setData([
+                'errors' => [
+                    'title' => 'Not Found',
+                    'status' => 404,
+                    'detail' => 'The ressource requested doesn\'t exist',
+                ]
+            ]);
+            $response->setStatusCode(404);
+        }
 
         if ($exception instanceof NotEncodableValueException) {
             $response->setData([
