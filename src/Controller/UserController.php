@@ -7,7 +7,6 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\ItemsListFactory;
-use App\Service\Pagination;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,18 +25,16 @@ final class UserController
     public function collection (
         UserRepository $userRepository, 
         SerializerInterface $serializer,
-        Pagination $pagination,
         ItemsListFactory $itemsListFactory,
         Request $request,
+        Security $security,
         ): JsonResponse
     {
         $page = null !== $request->query->get('page') ? 
         (int) $request->query->get('page') : 1;
 
         $usersList = $itemsListFactory->create(
-            $pagination->paginate($userRepository, $page), 
-            $page, 
-            $pagination::LIMIT
+            $userRepository->paginate($security->getUser(), $page)
         );
 
         return new JsonResponse(
@@ -86,7 +83,7 @@ final class UserController
             $serializer->serialize(
                 $user,
                 'json', 
-                ['groups' => 'get']
+                ['groups' => '*']
             ),
             201,
             ['Location' => $urlGenerator->generate('api_users_item_get', ['id' => $user->getId()])],
@@ -94,7 +91,7 @@ final class UserController
         );
     }
 
-    #[IsGranted('edit', subject: 'user', statusCode: 404)]
+    #[IsGranted(subject: 'user', statusCode: 404)]
     #[Route('/{id}', name:'api_users_item_put', methods:['PUT'])]
     public function put(
         User $user,
@@ -130,7 +127,7 @@ final class UserController
         );
     }
 
-    #[IsGranted('view', subject: 'user', statusCode: 404)]
+    #[IsGranted(subject: 'user', statusCode: 404)]
     #[Route('/{id}', name:'api_users_item_get', methods:['GET'])]
     public function item (
         User $user, 
@@ -142,7 +139,7 @@ final class UserController
             $serializer->serialize(
                 $user,
                 'json',
-                ['groups' => 'get']
+                ['groups' => '*']
             ),
             200,
             [],
@@ -150,7 +147,7 @@ final class UserController
         );
     }
 
-    #[IsGranted('delete', subject: 'user', statusCode: 404)]
+    #[IsGranted(subject: 'user', statusCode: 404)]
     #[Route('/{id}', name:'api_users_item_delete', methods:['DELETE'])]
     public function delete (
         User $user, 

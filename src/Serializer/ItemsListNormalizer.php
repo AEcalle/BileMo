@@ -31,10 +31,6 @@ final class ItemsListNormalizer implements ContextAwareNormalizerInterface
         $data['_embedded'] = $data['embedded'];
         unset($data['embedded']);
 
-        for ($i = 0; $i < count($data['_embedded']['items']); $i++) {
-            unset($data['_embedded']['items'][$i]['customer']);
-        }
-
         return $data;
     }
 

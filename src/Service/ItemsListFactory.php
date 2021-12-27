@@ -21,9 +21,13 @@ class ItemsListFactory
         $this->requestStack = $requestStack;
     }
 
-    public function create(Paginator $paginator, int $page, int $limit): ItemsList
+    public function create(Paginator $paginator): ItemsList
     {
         $itemsList = new ItemsList();
+
+        $limit = $paginator->getQuery()->getMaxResults();
+        $page = $paginator->getQuery()->getFirstResult() / $limit +1;
+
 
         $itemsList->setPage($page);
         $itemsList->setPages((int) ceil(count($paginator) / $limit));

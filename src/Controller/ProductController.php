@@ -7,7 +7,6 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Repository\ProductRepository;
 use App\Service\ItemsListFactory;
-use App\Service\Pagination;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -20,7 +19,6 @@ final class ProductController
     public function collection (
         ProductRepository $productRepository, 
         SerializerInterface $serializer,
-        Pagination $pagination,
         ItemsListFactory $itemsListFactory,
         Request $request,
         ): JsonResponse
@@ -29,9 +27,7 @@ final class ProductController
         (int) $request->query->get('page') : 1;
 
         $productsList = $itemsListFactory->create(
-            $pagination->paginate($productRepository, $page), 
-            $page, 
-            $pagination::LIMIT
+            $productRepository->paginate($page, 3)
         );
 
         return new JsonResponse(

@@ -13,14 +13,14 @@ class ItemsList
     private int $limit = 5;
 
     /**
-     * @var array{href: array<array-key, string>} $_links
+     * @var array{href: array<array-key, string>} $links
      */
-    private array $_links;
+    private array $links;
 
     /**
-     * @var array{items: array<array-key, object>} $_embedded
+     * @var array{items: array<array-key, object>} $embedded
      */
-    private array $_embedded;
+    private array $embedded;
 
     public function getPage(): int
     {
@@ -57,15 +57,15 @@ class ItemsList
      */
     public function getLinks(): array
     {
-        return $this->_links;
+        return $this->links;
     }
 
     /**
-     * @param array{href: array<array-key, string>} $_links
+     * @param array{href: array<array-key, string>} $links
      */
-    public function setLinks(array $_links): void
+    public function setLinks(array $links): void
     {
-        $this->_links = $_links;
+        $this->links = $links;
     }
 
     /**
@@ -73,14 +73,14 @@ class ItemsList
      */
     public function getEmbedded(): array
     {
-        return $this->_embedded;
+        return $this->embedded;
     }
 
     /**
-     * @param array{items: array<array-key, object>} $_embedded
+     * @param array{items: array<array-key, object>} $embedded
      */
-    public function setEmbedded(array $_embedded): void
+    public function setEmbedded(array $embedded): void
     {
-        $this->_embedded = $_embedded;
+        $this->embedded = $embedded;
     }
 }
