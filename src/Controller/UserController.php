@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\Customer;
 use App\Entity\User;
-use App\Exception\ValidationException;
 use App\Repository\UserRepository;
+use App\Service\ItemsListFactory;
 use Doctrine\ORM\EntityManagerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -23,14 +24,23 @@ final class UserController
     #[Route(name:'api_users_collection_get', methods:['GET'])]
     public function collection (
         UserRepository $userRepository, 
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        ItemsListFactory $itemsListFactory,
+        Request $request,
+        Security $security,
         ): JsonResponse
     {
+        $page = null !== $request->query->get('page') ? 
+        (int) $request->query->get('page') : 1;
+
+        $usersList = $itemsListFactory->create(
+            $userRepository->paginate($security->getUser(), $page)
+        );
+
         return new JsonResponse(
             $serializer->serialize(
-                $userRepository->findBy(['customer'=>1]), 
-                'json', 
-                ['groups' => 'get']
+                $usersList, 
+                'json',
             ),
             200,
             [],
@@ -45,6 +55,7 @@ final class UserController
         EntityManagerInterface $entityManager,
         UrlGeneratorInterface $urlGenerator,
         ValidatorInterface $validator,
+        Security $security,
         ): JsonResponse
     {
         $user = $serializer->deserialize(
@@ -64,15 +75,15 @@ final class UserController
             );
         }
 
-        $user->setCustomer($entityManager->getRepository(Customer::class)->findOneBy([]));
+        $user->setCustomer($security->getUser());
         $entityManager->persist($user);
         $entityManager->flush();
 
         return new JsonResponse(
             $serializer->serialize(
-                $user, 
+                $user,
                 'json', 
-                ['groups' => 'get']
+                ['groups' => '*']
             ),
             201,
             ['Location' => $urlGenerator->generate('api_users_item_get', ['id' => $user->getId()])],
@@ -80,6 +91,7 @@ final class UserController
         );
     }
 
+    #[IsGranted(subject: 'user', statusCode: 404)]
     #[Route('/{id}', name:'api_users_item_put', methods:['PUT'])]
     public function put(
         User $user,
@@ -115,27 +127,33 @@ final class UserController
         );
     }
 
+    #[IsGranted(subject: 'user', statusCode: 404)]
     #[Route('/{id}', name:'api_users_item_get', methods:['GET'])]
     public function item (
         User $user, 
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
         ): JsonResponse
     {
+
         return new JsonResponse(
-            $serializer->serialize($user, 'json'),
+            $serializer->serialize(
+                $user,
+                'json',
+                ['groups' => '*']
+            ),
             200,
             [],
             true
         );
     }
 
+    #[IsGranted(subject: 'user', statusCode: 404)]
     #[Route('/{id}', name:'api_users_item_delete', methods:['DELETE'])]
     public function delete (
         User $user, 
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
         ): JsonResponse
     {
-
         $entityManager->remove($user);
         $entityManager->flush();
 
