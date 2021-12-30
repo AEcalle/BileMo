@@ -27,7 +27,8 @@ final class ProductController
         (int) $request->query->get('page') : 1;
 
         $productsList = $itemsListFactory->create(
-            $productRepository->paginate($page, 3)
+            $productRepository->paginate($page),
+            $request->attributes->get('_route')
         );
 
         return new JsonResponse(
