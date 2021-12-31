@@ -10,7 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 final class ProductControllerTest extends WebTestCase
 {
-    use testFunctions;
+    use TestFunctions;
 
     public function testAuthenticationFailure(): void
     {

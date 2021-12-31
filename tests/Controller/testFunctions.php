@@ -9,7 +9,7 @@ use App\Service\ItemsListFactory;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Serializer\SerializerInterface;
 
-trait testFunctions
+trait TestFunctions
 {
     public function authenticationFailure(string $uri): void
     {
