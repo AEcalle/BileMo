@@ -50,7 +50,7 @@ class AppFixtures extends Fixture
             $manager->persist($user);
         }
 
-        for ($i = 0; $i < 10; $i++)
+        for ($i = 0; $i < 100; $i++)
         {
             $product = new Product();
             $product->setBrand(sprintf('brand%d', $i));

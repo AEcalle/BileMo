@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\ItemsListFactory;
 use Doctrine\ORM\EntityManagerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -38,7 +39,7 @@ final class UserController
             $request->attributes->get('_route')
         );
 
-        return new JsonResponse(
+        $response = new JsonResponse(
             $serializer->serialize(
                 $usersList, 
                 'json',
@@ -47,6 +48,12 @@ final class UserController
             [],
             true
         );
+
+        $response->setEtag(md5($response->getContent()));
+        $response->setPublic();
+        $response->isNotModified($request);
+
+        return $response;
     }
 
     #[Route(name:'api_users_collection_post', methods:['POST'])]
@@ -129,6 +136,7 @@ final class UserController
     }
 
     #[IsGranted(subject: 'user', statusCode: 404)]
+    #[Cache(etag: "'User' ~ user.getId()", public : true)]
     #[Route('/{id}', name:'api_users_item_get', methods:['GET'])]
     public function item (
         User $user, 

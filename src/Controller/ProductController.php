@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Repository\ProductRepository;
 use App\Service\ItemsListFactory;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -31,14 +32,21 @@ final class ProductController
             $request->attributes->get('_route')
         );
 
-        return new JsonResponse(
+        $response = new JsonResponse(
             $serializer->serialize($productsList, 'json'),
             200,
             [],
             true
         );
+
+        $response->setEtag(md5($response->getContent()));
+        $response->setPublic();
+        $response->isNotModified($request);
+
+        return $response;
     }
 
+    #[Cache(etag: "'Product' ~ product.getId()", public : true)]
     #[Route('/{id}', name:'api_products_item_get', methods:['GET'])]
     public function item (
         Product $product, 
