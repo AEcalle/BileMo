@@ -6,22 +6,18 @@ namespace App\Service;
 
 use App\Entity\ItemsList;
 use Doctrine\ORM\Tools\Pagination\Paginator;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class ItemsListFactory
 {
     private UrlGeneratorInterface $router;
 
-    private RequestStack $requestStack;
-
-    public function __construct(UrlGeneratorInterface $router, RequestStack $requestStack)
+    public function __construct(UrlGeneratorInterface $router)
     {
         $this->router = $router;
-        $this->requestStack = $requestStack;
     }
 
-    public function create(Paginator $paginator): ItemsList
+    public function create(Paginator $paginator, string $route): ItemsList
     {
         $itemsList = new ItemsList();
 
@@ -36,14 +32,17 @@ class ItemsListFactory
         $links = ['href' => []];
 
 
-        $links['href']['first'] = $this->generateUrl(1);
+        $links['href']['first'] = $this->generateUrl(1, $route);
         $links['href']['next'] = $this->generateUrl(
-            $page + 1 < $itemsList->getPages() ? $page + 1 : $itemsList->getPages()
+            $page + 1 < $itemsList->getPages() ? $page + 1 : $itemsList->getPages(),
+            $route
         );
         $links['href']['previous'] = $this->generateUrl(
-            $page - 1 > 0 ? $page - 1 : 1
+            $page - 1 > 0 ? $page - 1 : 1,
+            $route
         );
-        $links['href']['last'] = $this->generateUrl($itemsList->getPages());
+        $links['href']['last'] = $this->generateUrl($itemsList->getPages(), 
+        $route);
 
         $itemsList->setLinks($links);
 
@@ -57,10 +56,10 @@ class ItemsListFactory
         return $itemsList;
     }
 
-    public function generateUrl(int $page): string
+    public function generateUrl(int $page, string $route): string
     {
         return $this->router->generate(
-            $this->requestStack->getCurrentRequest()->attributes->get('_route'), 
+            $route, 
             [
                 'page' => $page,
             ], 

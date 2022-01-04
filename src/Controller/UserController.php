@@ -34,7 +34,8 @@ final class UserController
         (int) $request->query->get('page') : 1;
 
         $usersList = $itemsListFactory->create(
-            $userRepository->paginate($security->getUser(), $page)
+            $userRepository->paginate($security->getUser(), $page),
+            $request->attributes->get('_route')
         );
 
         return new JsonResponse(
