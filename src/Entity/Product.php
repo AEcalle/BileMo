@@ -42,6 +42,9 @@ class Product
     #[ORM\Column(type: 'integer')]
     private int $stock;
 
+    #[ORM\Column(type: 'datetime_immutable')]
+    private \DateTimeImmutable $updatedAt;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -135,5 +138,15 @@ class Product
     public function setStock(int $stock): void
     {
         $this->stock = $stock;
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): void
+    {
+        $this->updatedAt = $updatedAt;
     }
 }

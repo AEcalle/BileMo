@@ -5,6 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\Customer;
 use App\Entity\Product;
 use App\Entity\User;
+use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -47,6 +48,7 @@ class AppFixtures extends Fixture
             } else {
                 $user->setCustomer($customer2);
             }
+            $user->setUpdatedAt(new DateTimeImmutable());
             $manager->persist($user);
         }
 
@@ -62,6 +64,7 @@ class AppFixtures extends Fixture
             $product->setPrice(mt_rand(100,1000));
             $product->setStock(mt_rand(0,500));
             $product->setTva(20);
+            $product->setUpdatedAt(new \DateTimeImmutable());
             $manager->persist($product);
         }
 
