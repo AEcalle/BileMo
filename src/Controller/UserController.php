@@ -32,7 +32,12 @@ final class UserController
         ): JsonResponse
     {
         $response = new JsonResponse();
-        $response->setLastModified($userRepository->findOneBy([],['updatedAt' => 'DESC'])->getUpdatedAt());
+        $response->setEtag(
+                    $userRepository->findOneBy([], ['updatedAt' => 'DESC'])
+                        ->getUpdatedAt()
+                            ->format("Y-m-dH:i:s").$security->getUser()->getUserIdentifier()
+                    );
+        $response->setPublic();
 
         if ($response->isNotModified($request)) {
             return $response;
