@@ -7,6 +7,8 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Repository\ProductRepository;
 use App\Service\ItemsListFactory;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use OpenApi\Annotations as OA;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,6 +19,22 @@ use Symfony\Component\Serializer\SerializerInterface;
 final class ProductController
 {
     #[Route(name:'api_products_collection_get', methods:['GET'])]
+    /**
+     * @OA\Get(summary="Get list of a products")
+     * @OA\Response(
+     *     response=200,
+     *     description="Return list of products",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=Product::class))
+     *     )
+     * )
+     * @OA\Response(
+     *     response=401,
+     *     description="JWT Token not found",    
+     * )
+     * @OA\Tag(name="Products")
+     */
     public function collection (
         ProductRepository $productRepository, 
         SerializerInterface $serializer,
@@ -46,6 +64,15 @@ final class ProductController
 
     #[Cache(lastModified: 'product.getUpdatedAt()', public: true)]
     #[Route('/{id}', name:'api_products_item_get', methods:['GET'])]
+    /**
+     * @OA\Get(summary="Get details of a product")
+     * @OA\Response(
+     *     response=200,
+     *     description="Return a product",
+     *     @Model(type=Product::class)
+     * )
+     * @OA\Tag(name="Products")
+     */
     public function item (
         Product $product, 
         SerializerInterface $serializer,

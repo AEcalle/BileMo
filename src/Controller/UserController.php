@@ -8,6 +8,8 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\ItemsListFactory;
 use Doctrine\ORM\EntityManagerInterface;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use OpenApi\Annotations as OA;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,6 +25,22 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 final class UserController
 {
     #[Route(name:'api_users_collection_get', methods:['GET'])]
+    /**
+     * @OA\Get(summary="Get list of a users")
+     * @OA\Response(
+     *     response=200,
+     *     description="Return list of users",
+     *     @OA\JsonContent(
+     *        type="array",
+     *        @OA\Items(ref=@Model(type=User::class))
+     *     )
+     * )
+     * @OA\Response(
+     *     response=401,
+     *     description="JWT Token not found",    
+     * )
+     * @OA\Tag(name="Users")
+     */
     public function collection (
         UserRepository $userRepository, 
         SerializerInterface $serializer,
@@ -59,6 +77,18 @@ final class UserController
         return $response;
     }
 
+    /**
+     * @OA\Post(summary="Add a user")
+     * @OA\Response(
+     *    response=201,
+     *    description="Return a user",
+     * )
+     *  @OA\Response(
+     *    response=422,
+     *    description="Unprocessable Entity",
+     * )
+     * @OA\Tag(name="Users")
+     */
     #[Route(name:'api_users_collection_post', methods:['POST'])]
     public function post (
         Request $request,
@@ -103,6 +133,26 @@ final class UserController
         );
     }
 
+    /**
+    * @OA\Put(summary="Update a user")
+    * @OA\Response(
+    *    response=204,
+    *    description="No content",
+    * )
+    *  @OA\Response(
+    *    response=422,
+    *    description="Unprocessable Entity",
+    * )
+    * @OA\Response(
+    *    response=404,
+    *    description="The ressource requested doesn't exist"
+    * ),
+    * @OA\Response(
+    *    response=401,
+    *    description="JWT Token not found",
+    * )
+     * @OA\Tag(name="Users")
+     */
     #[IsGranted(subject: 'user', statusCode: 404)]
     #[Route('/{id}', name:'api_users_item_put', methods:['PUT'])]
     public function put(
@@ -140,6 +190,23 @@ final class UserController
         );
     }
 
+    /**
+    * @OA\Get(summary="Get details of a user")
+    * @OA\Response(
+    *     response=200,
+    *     description="Return a user",
+    *     @Model(type=User::class)
+    * )
+    * @OA\Response(
+    *    response=404,
+    *    description="The ressource requested doesn't exist"
+    * ),
+    * @OA\Response(
+    *    response=401,
+    *    description="JWT Token not found",
+    * )
+    * @OA\Tag(name="Users")
+    */
     #[IsGranted(subject: 'user', statusCode: 404)]
     #[Cache(lastModified: 'user.getUpdatedAt()')]
     #[Route('/{id}', name:'api_users_item_get', methods:['GET'])]
@@ -161,6 +228,33 @@ final class UserController
         );
     }
 
+/**
+    * @OA\Delete(
+    *     summary="Delete a user",
+    *     @OA\Parameter(
+    *         description="User id to delete",
+    *         in="path",
+    *         name="id",
+    *         required=true,
+    *         @OA\Schema(
+    *             type="integer",
+    *         )
+    *     ),
+    * )
+    * @OA\Response(
+    *    response=204,
+    *    description="No content"
+    * ),
+    * @OA\Response(
+    *    response=404,
+    *    description="The ressource requested doesn't exist"
+    * ),
+    * @OA\Response(
+    *    response=401,
+    *    description="JWT Token not found",
+    * )
+    * @OA\Tag(name="Users")
+*/
     #[IsGranted(subject: 'user', statusCode: 404)]
     #[Route('/{id}', name:'api_users_item_delete', methods:['DELETE'])]
     public function delete (
