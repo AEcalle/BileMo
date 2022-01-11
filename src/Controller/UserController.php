@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\ItemsListFactory;
 use Doctrine\ORM\EntityManagerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Cache;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,6 +31,18 @@ final class UserController
         Security $security,
         ): JsonResponse
     {
+        $response = new JsonResponse();
+        $response->setEtag(
+                    $userRepository->findOneBy([], ['updatedAt' => 'DESC'])
+                        ->getUpdatedAt()
+                            ->format("Y-m-dH:i:s").$security->getUser()->getUserIdentifier()
+                    );
+        $response->setPublic();
+
+        if ($response->isNotModified($request)) {
+            return $response;
+        }
+
         $page = null !== $request->query->get('page') ? 
         (int) $request->query->get('page') : 1;
 
@@ -37,16 +50,13 @@ final class UserController
             $userRepository->paginate($security->getUser(), $page),
             $request->attributes->get('_route')
         );
+        $response->setJson($serializer->serialize(
+            $usersList, 
+            'json',
+        ));
+        $response->setStatusCode(200);        
 
-        return new JsonResponse(
-            $serializer->serialize(
-                $usersList, 
-                'json',
-            ),
-            200,
-            [],
-            true
-        );
+        return $response;
     }
 
     #[Route(name:'api_users_collection_post', methods:['POST'])]
@@ -77,6 +87,7 @@ final class UserController
         }
 
         $user->setCustomer($security->getUser());
+        $user->setUpdatedAt(new \DateTimeImmutable());
         $entityManager->persist($user);
         $entityManager->flush();
 
@@ -119,7 +130,8 @@ final class UserController
                 true
             );
         }
-
+        $user->setUpdatedAt(new \DateTimeImmutable());
+        $entityManager->persist($user);
         $entityManager->flush();
 
         return new JsonResponse(
@@ -129,6 +141,7 @@ final class UserController
     }
 
     #[IsGranted(subject: 'user', statusCode: 404)]
+    #[Cache(lastModified: 'user.getUpdatedAt()')]
     #[Route('/{id}', name:'api_users_item_get', methods:['GET'])]
     public function item (
         User $user, 

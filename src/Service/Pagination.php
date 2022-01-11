@@ -9,7 +9,7 @@ use Doctrine\ORM\Tools\Pagination\Paginator;
 
 final class Pagination
 {
-    const LIMIT = 3;
+    const LIMIT = 50;
 
     public function paginate(Query $query, int $page): Paginator
     {
