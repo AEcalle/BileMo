@@ -4,20 +4,37 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use OpenApi\Annotations as OA;
+
+/**
+ * @OA\Schema(schema="itemsList")
+ */
 class ItemsList
 {
+    /**
+     * @OA\Property()
+     * @var int
+     */
     private int $page;
-
+    /**
+     * @OA\Property()
+     * @var int
+     */
     private int $pages;
-
+    /**
+     * @OA\Property()
+     * @var int
+     */
     private int $limit = 5;
 
     /**
+     * @OA\Property()
      * @var array{href: array<array-key, string>} $links
      */
     private array $links;
 
     /**
+     * @OA\Property()
      * @var array{items: array<array-key, object>} $embedded
      */
     private array $embedded;
