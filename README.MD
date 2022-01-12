@@ -5,7 +5,7 @@ API with Symfony 6. Work carried out as part of the training course "Application
 ## Table of Contents
 1.  __[Prerequisite](#prerequisite)__
 2.  __[Installation](#installation)__
-  * [Clone](#Clone)
+  * [Clone](#clone)
   * [Configure environment variables](#configure-environment-variables)
   * [Install the project](#install-the-project)
   * [Create the database](#create-the-database)
@@ -67,6 +67,7 @@ $ php bin/console doctrine:schema:update -f
 4. 
 ```
 $ php bin/console doctrine:fixtures:load -n
+```
 
 ## Access API documentation
 There are 2 available documentation formats:  
