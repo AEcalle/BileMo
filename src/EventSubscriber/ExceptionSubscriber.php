@@ -24,7 +24,7 @@ class ExceptionSubscriber implements EventSubscriberInterface
     public function onKernelException(ExceptionEvent $event): void
     {
         $exception = $event->getThrowable();
-        dd($exception);
+
         $response = new JsonResponse();
 
         if ($exception instanceof HttpException) {
