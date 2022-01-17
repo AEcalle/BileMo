@@ -5,19 +5,18 @@ API with Symfony 6. Work carried out as part of the training course "Application
 ## Table of Contents
 1.  __[Prerequisite](#prerequisite)__
 2.  __[Installation](#installation)__
-  * [Clone](#clone)
-  * [Configure environment variables](#configure-environment-variables)
-  * [Install the project](#install-the-project)
-  * [Create the database](#create-the-database)
+*   [Clone](#clone)
+*   [Configure environment variables](#configure-environment-variables)
+*   [Install the project](#install-the-project)
+*   [Create the database](#create-the-database)
 3.  __[Access API documentation](#access-api-documentation)__
-
 
 ---
 ## PREREQUISITE
 
-* PHP >=8.0.2
-* Composer
-* A database management system (ex MYSQL)
+*   PHP >=8.0.2
+*   Composer
+*   A database management system (ex MYSQL)
 
 See more information on technical requirements in the [Symfony official documentation](https://symfony.com/doc/current/setup.html#technical-requirements).
 
@@ -38,7 +37,7 @@ DATABASE_URL="mysql://db_user:db_password@127.0.0.1:3306/db_name?serverVersion=5
 
 ### __Install the project__
 1.  In your cmd, go to the directory where you want to install the project and install dependencies with composer:
-```
+```bash
 $ composer install
 ```
 Dependencies should be installed in your project (check _vendor_ directory).  
@@ -71,5 +70,5 @@ $ php bin/console doctrine:fixtures:load -n
 
 ## Access API documentation
 There are 2 available documentation formats:  
-- Json documentation: /api/doc.json
-- Html interactive documentation: /api
+*   Json documentation: /api/doc.json
+*   Html documentation: /api/doc
